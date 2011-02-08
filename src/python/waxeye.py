@@ -29,14 +29,28 @@ class FA:
 
 
 class ParseError:
-    def __init__(self, pos, line, col, nt):
+    def __init__(self, parser, pos, line, col, nt):
+        self.parser = parser
         self.pos = pos
         self.line = line
         self.col = col
         self.nt = nt
 
+    def get_error_string(self):
+        error_string = []
+        for index in range(0, self.parser.input_len):
+            if index == (self.col - 1):
+                string = '^'
+            else:
+                string = ' '
+            error_string.append(string)
+        error_string = '%s\n%s' % (self.parser.input, '' . join(error_string))
+        return error_string
+
     def __str__(self):
-        return "parse error: failed to match '%s' at line=%s, col=%s, pos=%s" % (self.nt, self.line, self.col, self.pos)
+        error_line_1 = "parse error: failed to match '%s' at line=%s, col=%s, pos=%s" % (self.nt, self.line, self.col, self.pos)
+        error_line_2 = self.get_error_string()
+        return '%s\n%s' % (error_line_1, error_line_2)
 
 
 class AST:
@@ -254,12 +268,12 @@ class WaxeyeParser:
             if res:
                 if self.eof_check and self.input_pos < self.input_len:
                     # Create a parse error - Not all input consumed
-                    return ParseError(self.error_pos, self.error_line, self.error_col, self.error_nt)
+                    return ParseError(self, self.error_pos, self.error_line, self.error_col, self.error_nt)
                 else:
                     return res
             else:
                 # Create a parse error
-                return ParseError(self.error_pos, self.error_line, self.error_col, self.error_nt)
+                return ParseError(self, self.error_pos, self.error_line, self.error_col, self.error_nt)
 
 
         # Takes a set and an ordinal
