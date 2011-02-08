@@ -29,8 +29,9 @@ class FA:
 
 
 class ParseError:
-    def __init__(self, parser, pos, line, col, nt):
+    def __init__(self, parser, partial_ast, pos, line, col, nt):
         self.parser = parser
+        self.partial_ast = partial_ast
         self.pos = pos
         self.line = line
         self.col = col
@@ -46,6 +47,9 @@ class ParseError:
             error_string.append(string)
         error_string = '%s\n%s' % (self.parser.input, '' . join(error_string))
         return error_string
+
+    def get_partial_ast(self):
+        return self.partial_ast
 
     def __str__(self):
         error_line_1 = "parse error: failed to match '%s' at line=%s, col=%s, pos=%s" % (self.nt, self.line, self.col, self.pos)
@@ -268,13 +272,12 @@ class WaxeyeParser:
             if res:
                 if self.eof_check and self.input_pos < self.input_len:
                     # Create a parse error - Not all input consumed
-                    return ParseError(self, self.error_pos, self.error_line, self.error_col, self.error_nt)
+                    return ParseError(self, res, self.error_pos, self.error_line, self.error_col, self.error_nt)
                 else:
                     return res
             else:
                 # Create a parse error
-                return ParseError(self, self.error_pos, self.error_line, self.error_col, self.error_nt)
-
+                return ParseError(self, res, self.error_pos, self.error_line, self.error_col, self.error_nt)
 
         # Takes a set and an ordinal
         def within_set(self, set, c):
